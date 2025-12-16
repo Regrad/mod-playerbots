@@ -302,15 +302,15 @@ void PlayerbotFactory::Randomize(bool incremental)
     if (!incremental || !sPlayerbotAIConfig->equipmentPersistence ||
         bot->GetLevel() < sPlayerbotAIConfig->equipmentPersistenceLevel)
     {
-        // FIX: init=auto должен лечить "таланты во 2-м спеке / пусто в 1-м", как talents autopick.
-        // 1) Гарантируем, что активен primary spec (spec 0)
+        // FIX: init=auto should cure "talents in 2nd spec / empty in 1st", like talents autopick.
+        // 1) Ensure the primary spec (spec 0) is active
         if (bot->GetSpecsCount() >= 2 && bot->GetActiveSpec() != 0)
             bot->ActivateSpec(0);
 
-        // 2) После setlevel/даунгрейда/апгрейда очки талантов могут быть несогласованы — пересчитываем
+        // 2) After setlevel/downgrade/upgrade talent points can be inconsistent — recalculate
         bot->InitTalentForLevel();
 
-        // 3) Инициализация талантов ДОЛЖНА начинаться с reset, иначе на "кривых" персонажах ничего не раскладывается
+        // 3) Talent initialization MUST start with reset, otherwise on "broken" characters nothing is distributed
         InitTalentsTree(false, true, true);
     }
     sRandomPlayerbotMgr->SetValue(bot->GetGUID().GetCounter(), "specNo", 0);
@@ -2835,7 +2835,7 @@ void PlayerbotFactory::InitTalentsByTemplate(uint32 specTab)
             auto it = spells_row.find(row);
             if (it == spells_row.end() || it->second.empty())
             {
-                // один кривой шаг не должен убивать всю раскладку
+                // one broken step should not ruin the entire layout
                 continue;
             }
             auto& spells = it->second;
