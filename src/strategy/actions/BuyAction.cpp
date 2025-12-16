@@ -229,7 +229,7 @@ bool BuyAction::BuyItem(VendorItemData const* tItems, ObjectGuid vendorguid, Ite
 
     uint32 itemId = proto->ItemId;
 
-    // ВАЖНО: не создаём "item count::<Name1>" value в AiObjectContext
+    // IMPORTANT: do not create "item count::<Name1>" value in AiObjectContext
     uint32 oldCount = bot->GetItemCount(itemId, false);
 
     for (uint32 slot = 0; slot < tItems->GetItemCount(); ++slot)

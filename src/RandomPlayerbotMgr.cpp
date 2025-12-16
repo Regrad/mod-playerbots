@@ -2458,15 +2458,15 @@ void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
         uint32 c1 = CountTalents(bot, 1);
         uint32 c2 = CountTalents(bot, 2);
 
-        // Типичный слом: первый спек пустой, а таланты записаны во второй (specMask=2)
+        // Typical breakdown: the first spec is empty, and talents are written in the second (specMask=2)
         if (c1 == 0 && c2 > 0 && bot->GetSpecsCount() >= 2)
         {
             bot->ActivateSpec(1);
-            bot->resetTalents(true);  // чистим второй спек, чтобы больше не "залипало" туда
+            bot->resetTalents(true);  // clean the second spec so that it doesn't stick there anymore
             bot->ActivateSpec(0);
         }
 
-        // Гарантируем, что таланты кладём в первый спек
+        // We guarantee that talents are placed in the first spec
         if (bot->GetActiveSpec() != 0)
             bot->ActivateSpec(0);
 
@@ -2474,7 +2474,7 @@ void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
         fixFactory.InitTalentsTree(false, true, true);  // reset=true
         fixFactory.InitPetTalents();
 
-        bot->SaveToDB(false, false);  // важно: чтобы в БД стало specMask=1, а не "исправилось до релога"
+        bot->SaveToDB(false, false);  // important: that specMask=1 in the DB, and not "fixed before relog"
     }
 
     uint32 randomTime =
@@ -2749,7 +2749,7 @@ std::vector<uint32> RandomPlayerbotMgr::GetBgBots(uint32 bracket)
 
 uint32 RandomPlayerbotMgr::GetEventValue(uint32 bot, std::string const event)
 {
-    // Грузим события из БД один раз на бота (даже если в БД 0 строк)
+    // Load events from the database once per bot (even if there are 0 rows in the database)
     if (eventCacheLoaded.find(bot) == eventCacheLoaded.end())
     {
         auto& botCache = eventCache[bot];
@@ -2787,7 +2787,7 @@ uint32 RandomPlayerbotMgr::GetEventValue(uint32 bot, std::string const event)
     auto& botEvents = botIt->second;
     auto it = botEvents.find(event);
 
-    // ВАЖНО: не создаём запись на чтении
+    // IMPORTANT: do not create a record on read
     if (it == botEvents.end())
         return 0;
 
@@ -2798,7 +2798,6 @@ uint32 RandomPlayerbotMgr::GetEventValue(uint32 bot, std::string const event)
 
     return e.value;
 }
-
 
 std::string const RandomPlayerbotMgr::GetEventData(uint32 bot, std::string const event)
 {
@@ -2815,7 +2814,6 @@ std::string const RandomPlayerbotMgr::GetEventData(uint32 bot, std::string const
 
     return it->second.data;
 }
-
 
 uint32 RandomPlayerbotMgr::SetEventValue(uint32 bot, std::string const event, uint32 value, uint32 validIn,
                                          std::string const data)
@@ -3067,7 +3065,7 @@ void RandomPlayerbotMgr::OnBotLoginInternal(Player* const bot)
     {
         bot->InitTalentForLevel();
 
-        // Посчитаем, есть ли таланты в активном спеке
+        // Let's calculate whether there are talents in the active spec
         auto CountTalentsForMask = [&](uint32 mask) -> uint32
         {
             uint32 c = 0;
@@ -3080,13 +3078,13 @@ void RandomPlayerbotMgr::OnBotLoginInternal(Player* const bot)
             return c;
         };
 
-        uint32 activeMask = bot->GetActiveSpecMask();  // 1 или 2
+        uint32 activeMask = bot->GetActiveSpecMask();  // 1 or 2
         uint32 activeCnt = CountTalentsForMask(activeMask);
 
-        // Если активный спек пустой — лечим (это и есть твой случай)
+        // If the active spec is empty, we heal (this is your case)
         if (activeCnt == 0 && bot->GetFreeTalentPoints() > 0)
         {
-            // принудительно используем 1-й спек, чтобы таланты писались в specMask=1
+            // force use of the 1st spec so that talents are written in specMask=1
             if (bot->GetActiveSpec() != 0)
                 bot->ActivateSpec(0);
 

@@ -156,10 +156,10 @@ bool Engine::DoNextAction(Unit* unit, uint32 depth, bool minimal)
 
     uint32 iterations = 0;
 
-    // фиксированный бюджет на тик (НЕ зависит от размера очереди)
+	// fixed budget per tick (does NOT depend on queue size)
     uint32 maxIterations = minimal ? 2 : sPlayerbotAIConfig->iterationsPerTick;
 
-    // и не больше, чем реально есть в очереди
+    // and no more than is actually in the queue
     uint32 iterationsPerTick = std::min<uint32>(maxIterations, queue.Size());
 
     while (++iterations <= iterationsPerTick)
