@@ -55,8 +55,18 @@ bool ChangeTalentsAction::Execute(Event event)
         }
         else if (param.find("autopick") != std::string::npos)
         {
+            // После setlevel/понижения/повышения у некоторых персонажей очки талантов/спек могут быть несогласованы
+            bot->InitTalentForLevel();
+
+            // Важно: лечим именно активный спек (обычно 0)
+            // Если бот внезапно активен во 2-м спеке — можно принудительно вернуть в 1-й:
+            if (bot->GetActiveSpec() != 0)
+                bot->ActivateSpec(0);
+
             PlayerbotFactory factory(bot, bot->GetLevel());
-            factory.InitTalentsTree(true);
+            factory.InitTalentsTree(false, true, true);  // increment=false, use_template=true, reset=true
+            factory.InitPetTalents();
+
             out << "Auto pick talents";
             botAI->ResetStrategies();
         }
