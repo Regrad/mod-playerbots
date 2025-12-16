@@ -16,33 +16,33 @@ bool CompareSpells(std::pair<uint32, std::string> const& lhs, std::pair<uint32, 
     SpellInfo const* lhsInfo = sSpellMgr->GetSpellInfo(lhs.first);
     SpellInfo const* rhsInfo = sSpellMgr->GetSpellInfo(rhs.first);
 
-    // Если почему-то нет SpellInfo — логируем и сортируем по id,
-    // чтобы компаратор оставался строгим и детерминированным.
+	// If for some reason there is no SpellInfo, we log and sort by id,
+	// so that the comparator remains strict and deterministic.
     if (!lhsInfo || !rhsInfo)
     {
         LOG_ERROR("playerbots", "SpellInfo missing. {} {}", lhs.first, rhs.first);
         return lhs.first < rhs.first;
     }
 
-    // Основной ключ сортировки – школа (как и раньше через SchoolMask,
-    // только без SkillLine/TrivialSkillLineRankLow, чтобы не лазить по DBC)
+	// The primary sorting key is school (as before, via SchoolMask,
+	// but without SkillLine/TrivialSkillLineRankLow, to avoid trawling through the DBC)
     uint32 lhsKey = lhsInfo->SchoolMask;
     uint32 rhsKey = rhsInfo->SchoolMask;
 
     if (lhsKey != rhsKey)
-        return lhsKey > rhsKey;  // > — чтобы порядок «по убыванию» был ближе к старому поведению
+        return lhsKey > rhsKey;  // > — so that the "descending" order is closer to the old behavior
 
-    // DBC защита: если имя спелла в DBC битое (nullptr),
-    // не вызываем std::strcmp вообще.
+	// DBC protection: if a spell name in DBC is invalid (nullptr),
+	// do not call std::strcmp at all.
     if (!lhsInfo->SpellName[0] || !rhsInfo->SpellName[0])
         return lhs.first < rhs.first;
 
     int cmp = std::strcmp(lhsInfo->SpellName[0], rhsInfo->SpellName[0]);
     if (cmp != 0)
-        return cmp > 0;  // > — оставить тот же «направленный» порядок, что и раньше
+        return cmp > 0;  // > — leave the same "directed" order as before
 
-    // Фолбэк: если имена совпали (или пустые/странные),
-    // упорядочим по id, чтобы компаратор был строгим.
+	// Fallback: if the names match (or are empty/strange),
+	// order by id to ensure the comparator is strict.
     return lhs.first < rhs.first;
 }
 

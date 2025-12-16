@@ -198,9 +198,7 @@ void PlayerbotHolder::AddPlayerBot(ObjectGuid playerGuid, uint32 masterAccountId
                         mgr = GET_PLAYERBOT_MGR(masterPlayer);
                 }
                 else
-                {
                     mgr = sRandomPlayerbotMgr;
-                }
 
                 if (mgr)
                     mgr->HandlePlayerBotLoginCallback(holder);

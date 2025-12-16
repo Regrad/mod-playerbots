@@ -4433,7 +4433,7 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
         {
             Player* member = gref->GetSource();
 
-            // Исправлено: не трогаем nullptr и тех, кто не в мире/не на той карте
+            // Fixed: Don't touch nullptr and those who are not in the world/on the wrong map
             if (!member || !member->IsInWorld() || member->GetMapId() != bot->GetMapId())
                 continue;
 
@@ -4441,11 +4441,11 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
                 continue;
 
             PlayerbotAI* memberBotAI = GET_PLAYERBOT_AI(member);
-            // Если в группе есть живой игрок или бот с реальным мастером — активность разрешена
+            // If there is a live player or a bot with a real master in the group, activity is allowed
             if (!memberBotAI || memberBotAI->HasRealPlayerMaster())
                 return true;
 
-            // Лидер группы может ограничивать активность
+            // The group leader can limit activity
             if (group->IsLeader(member->GetGUID()))
             {
                 if (!memberBotAI->AllowActivity(PARTY_ACTIVITY))
@@ -4546,11 +4546,11 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
 
 bool PlayerbotAI::AllowActivity(ActivityType activityType, bool checkNow)
 {
-    // Аккуратно переводим enum в индекс массива и проверяем границы
+    // Carefully convert the enum to an array index and check the boundaries
     const int idx = static_cast<int>(activityType);
     if (idx < 0 || idx >= MAX_ACTIVITY_TYPE)
     {
-        // Некорректное значение активити — не блокируем бота, просто считаем активным
+        // Incorrect activity value - we don't block the bot, we just consider it active
         return true;
     }
 

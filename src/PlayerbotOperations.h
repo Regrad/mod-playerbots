@@ -491,9 +491,7 @@ public:
                 holder = GET_PLAYERBOT_MGR(masterPlayer);
         }
         else
-        {
             holder = sRandomPlayerbotMgr;
-        }
 
         if (!holder)
             return false;
