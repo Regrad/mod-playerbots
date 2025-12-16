@@ -4549,10 +4549,8 @@ bool PlayerbotAI::AllowActivity(ActivityType activityType, bool checkNow)
     // Carefully convert the enum to an array index and check the boundaries
     const int idx = static_cast<int>(activityType);
     if (idx < 0 || idx >= MAX_ACTIVITY_TYPE)
-    {
         // Incorrect activity value - we don't block the bot, we just consider it active
         return true;
-    }
 
     if (!allowActiveCheckTimer[idx])
         allowActiveCheckTimer[idx] = time(nullptr);

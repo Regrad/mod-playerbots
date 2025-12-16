@@ -40,28 +40,28 @@
 
 namespace
 {
-// Fix talent state after init/randomize commands.
-// Some bots can end up with talents effectively applied to a non-active spec (e.g. specMask=2 only).
-// This forces primary spec and re-applies talents with reset=true (same idea as "talents autopick").
-void FixTalentsAfterInit(Player* bot)
-{
-    if (!bot || bot->GetLevel() < 10)
-        return;
+	// Fix talent state after init/randomize commands.
+	// Some bots can end up with talents effectively applied to a non-active spec (e.g. specMask=2 only).
+	// This forces primary spec and re-applies talents with reset=true (same idea as "talents autopick").
+	void FixTalentsAfterInit(Player* bot)
+	{
+		if (!bot || bot->GetLevel() < 10)
+			return;
 
-    // After setlevel/level tweaks the talent point state can get out of sync.
-    bot->InitTalentForLevel();
+		// After setlevel/level tweaks the talent point state can get out of sync.
+		bot->InitTalentForLevel();
 
-    // Always apply to primary spec.
-    if (bot->GetActiveSpec() != 0)
-        bot->ActivateSpec(0);
+		// Always apply to primary spec.
+		if (bot->GetActiveSpec() != 0)
+			bot->ActivateSpec(0);
 
-    PlayerbotFactory factory(bot, bot->GetLevel());
-    factory.InitTalentsTree(false, true, true);  // increment=false, use_template=true, reset=true
-    factory.InitPetTalents();
+		PlayerbotFactory factory(bot, bot->GetLevel());
+		factory.InitTalentsTree(false, true, true);  // increment=false, use_template=true, reset=true
+		factory.InitPetTalents();
 
-    // Persist so the fix survives relog and does not stay in specMask=2 only.
-    bot->SaveToDB(false, false);
-}
+		// Persist so the fix survives relog and does not stay in specMask=2 only.
+		bot->SaveToDB(false, false);
+	}
 }  // namespace
 #include <algorithm>  // Added for gender choice
 
@@ -767,9 +767,7 @@ std::string const PlayerbotHolder::ProcessBotCommand(std::string const cmd, Obje
 
             if (!sPlayerbotAIConfig->allowAccountBots && accountId != masterAccountId &&
                 !(sPlayerbotAIConfig->allowTrustedAccountBots && IsAccountLinked(accountId, masterAccountId)))
-            {
                 return "you can only add bots from your own account or linked accounts";
-            }
         }
 
         AddPlayerBot(guid, masterAccountId);

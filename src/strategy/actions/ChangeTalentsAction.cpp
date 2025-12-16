@@ -55,11 +55,11 @@ bool ChangeTalentsAction::Execute(Event event)
         }
         else if (param.find("autopick") != std::string::npos)
         {
-            // После setlevel/понижения/повышения у некоторых персонажей очки талантов/спек могут быть несогласованы
+            // After setlevel/downgrade/upgrade, some characters may have inconsistent talent points/specs
             bot->InitTalentForLevel();
 
-            // Важно: лечим именно активный спек (обычно 0)
-            // Если бот внезапно активен во 2-м спеке — можно принудительно вернуть в 1-й:
+            // Important: fix the active spec (usually 0)
+            // If the bot is suddenly active in the 2nd spec, you can force it back to the 1st:
             if (bot->GetActiveSpec() != 0)
                 bot->ActivateSpec(0);
 
