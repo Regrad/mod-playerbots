@@ -55,8 +55,18 @@ bool ChangeTalentsAction::Execute(Event event)
         }
         else if (param.find("autopick") != std::string::npos)
         {
+            // After setlevel/downgrade/upgrade, some characters may have inconsistent talent points/specs
+            bot->InitTalentForLevel();
+
+            // Important: fix the active spec (usually 0)
+            // If the bot is suddenly active in the 2nd spec, you can force it back to the 1st:
+            if (bot->GetActiveSpec() != 0)
+                bot->ActivateSpec(0);
+
             PlayerbotFactory factory(bot, bot->GetLevel());
-            factory.InitTalentsTree(true);
+            factory.InitTalentsTree(false, true, true);  // increment=false, use_template=true, reset=true
+            factory.InitPetTalents();
+
             out << "Auto pick talents";
             botAI->ResetStrategies();
         }
