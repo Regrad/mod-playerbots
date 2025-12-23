@@ -47,6 +47,7 @@
 #include "PointMovementGenerator.h"
 #include "PositionValue.h"
 #include "RandomPlayerbotMgr.h"
+#include "PlayerbotFactory.h"
 #include "SayAction.h"
 #include "ScriptMgr.h"
 #include "ServerFacade.h"
@@ -367,6 +368,9 @@ void PlayerbotAI::UpdateAI(uint32 elapsed, bool minimal)
     // Update the bot's group status (moved to helper function)
     UpdateAIGroupMaster();
 
+    // PvP/BG/Arena gear swap (switch between PvE and PvP sets)
+    UpdatePvPGearSwap(elapsed);
+
     // Update internal AI
     UpdateAIInternal(elapsed, minimal);
     YieldThread(GetReactDelay());
@@ -433,6 +437,81 @@ void PlayerbotAI::UpdateAIGroupMaster()
         }
     }
 }
+
+void PlayerbotAI::UpdatePvPGearSwap(uint32 elapsed)
+{
+    if (!bot || !bot->GetSession() || !bot->IsInWorld())
+        return;
+
+    bool isPvpContext = bot->InBattleground() || bot->InArena();
+
+    // Detect transitions world <-> BG/Arena
+    if (isPvpContext != lastPvpContext)
+    {
+        lastPvpContext = isPvpContext;
+        pvpGearSwapPending = true;
+        pvpGearSwapCooldown = 0;  // try immediately
+    }
+
+    if (!pvpGearSwapPending)
+        return;
+
+    if (pvpGearSwapCooldown)
+    {
+        if (pvpGearSwapCooldown > elapsed)
+        {
+            pvpGearSwapCooldown -= elapsed;
+            return;
+        }
+        pvpGearSwapCooldown = 0;
+    }
+
+    // Can't change equipment in combat / teleport; retry later.
+    if (!bot->IsAlive() || bot->IsInCombat() || bot->IsBeingTeleported() || bot->GetSession()->isLogingOut() ||
+        bot->IsDuringRemoveFromWorld())
+    {
+        pvpGearSwapCooldown = 5000;
+        return;
+    }
+
+    // Important: "alt" bots may be temporarily controlled by someone else.
+    // We must not decide this based on master's account.
+    // The module already uses RandomAccountList to distinguish real alts from bot accounts
+    // (see AutoGearAction / PlayerbotAIConfig::IsInRandomAccountList).
+    // - accounts in RandomAccountList => bot accounts (allowed to generate gear)
+    // - all other accounts            => real player alts (bag-only)
+    bool isBotAccount = sRandomPlayerbotMgr->IsRandomBot(bot) ||
+                        sPlayerbotAIConfig->IsInRandomAccountList(bot->GetSession()->GetAccountId());
+    bool bagOnly = !isBotAccount;
+
+    if (bagOnly)
+    {
+        // Bag-only swap for alts
+        if (DoSpecificAction("equip upgrade", Event("pvp gear swap"), true))
+            pvpGearSwapPending = false;
+        else
+            pvpGearSwapCooldown = 5000;
+
+        return;
+    }
+
+    // Gear generation swap (random bots + non-twink addbot bots):
+    // run equipment init only, but rely on resilience preference in StatsWeightCalculator to pick PvP in BG/Arena.
+    Player* gsRef = (master && master->GetSession()) ? master : bot;
+
+    uint32 gsLimit = uint32(PlayerbotAI::GetMixedGearScore(gsRef, true, false, 12) *
+                            sPlayerbotAIConfig->autoInitEquipLevelLimitRatio);
+
+    // work around: distinguish from 0 if no gear
+    if (gsLimit == 0)
+        gsLimit = 1;
+
+    PlayerbotFactory factory(bot, bot->GetLevel(), ITEM_QUALITY_LEGENDARY, gsLimit);
+    factory.InitEquipment(false, true);
+
+    pvpGearSwapPending = false;
+}
+
 
 void PlayerbotAI::UpdateAIInternal([[maybe_unused]] uint32 elapsed, bool minimal)
 {
